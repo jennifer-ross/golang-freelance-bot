@@ -122,3 +122,4 @@ tmp/*
 build/*
 dist/*
 db/*
+.qodo
