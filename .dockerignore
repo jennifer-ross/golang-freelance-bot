@@ -1,0 +1,9 @@
+.dockerignore
+.editorconfig
+.env-example
+.git
+Dockerfile
+docker-compose.yaml
+LICENSE
+README.md
+docs
