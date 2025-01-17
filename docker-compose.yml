@@ -11,8 +11,8 @@ services:
         volumes:
             - .env:/opt/app/.env
         environment:
-            - '${GO111MODULE:-on}'
-            - '${CGO_ENABLED:-0}'
+            - 'GO111MODULE=${GO111MODULE:-on}'
+            - 'CGO_ENABLED=${CGO_ENABLED:-0}'
         networks:
             - app-network
         depends_on:
@@ -26,10 +26,9 @@ services:
         env_file:
             -   .env
         environment:
-            environment:
-                - POSTGRES_USER=${POSTGRES_USER:-postgres}
-                - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
-                - POSTGRES_DB=${POSTGRES_DB:-golang_db}
+            - 'POSTGRES_USER=${POSTGRES_USER:-postgres}'
+            - 'POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}'
+            - 'POSTGRES_DB=${POSTGRES_DB:-golang_db}'
         volumes:
             - postgres_data:/var/lib/postgresql/data
         networks:
