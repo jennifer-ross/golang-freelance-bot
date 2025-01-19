@@ -6,7 +6,7 @@
 [![Docker Badge](https://img.shields.io/badge/Docker-ready-green)](#)
 [![License](https://img.shields.io/badge/license-MIT-green)](#)
 
-[Русская версия](./README_RU.md)
+[Русская версия](/docs/README_RU.md)
 
 Golang Freelance Bot is a bot developed in Go, designed for quickly receiving orders from freelance platforms in real time and promptly notifying the user via Telegram. Thanks to its Docker integration, the bot can be easily deployed and configured to work in any environment.
 
