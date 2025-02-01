@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"golang-freelance-bot/logger"
@@ -28,6 +29,9 @@ type BaseApiResponse struct {
 // Constants for context keys used for authentication.
 const AuthCtxKey = "fasthttpsauth"       // Key for storing authentication status in context
 const AuthKeyCtxKey = "fasthttpsauthkey" // Key for storing authentication token in context
+
+// ParamsCtxKey is a context key used for storing query parameters in the request.
+const ParamsCtxKey = "fasthttpparams" // Key for storing query parameters in context
 
 // New creates and returns a new BaseApi instance.
 // It initializes the HTTP client with default timeouts and settings.
@@ -81,6 +85,9 @@ func (api *BaseApi) Request(path string, method string) (error, *BaseApiResponse
 		}
 	}
 
+	// Set query parameters if the method for GET and body parameters for other methods provided in the context.
+	api.setParamsFromCtx(req, method)
+
 	// Acquire an HTTP response object
 	resp := fasthttp.AcquireResponse()
 	defer fasthttp.ReleaseResponse(resp) // Release the response object after use
@@ -102,10 +109,33 @@ func (api *BaseApi) Request(path string, method string) (error, *BaseApiResponse
 		headers[string(key)] = string(value)
 	})
 
+	// Clear the context for the next request
+	api.ctx = context.Background()
+
 	// Return the response
 	return nil, &BaseApiResponse{
 		Body:    body,
 		Headers: headers,
+	}
+}
+
+// setParamsFromCtx sets the request parameters from the context.
+// If the HTTP method is GET, it adds query parameters to the request URI.
+// For other methods, it marshals the parameters into JSON and sets them as the request body.
+func (api *BaseApi) setParamsFromCtx(req *fasthttp.Request, method string) {
+	if params, ok := api.ctx.Value(ParamsCtxKey).(map[string]string); ok && params != nil {
+		// TODO add logic to choose different body format from ctx. For now, it uses JSON.
+		if method == fasthttp.MethodGet {
+			for paramKey, paramVal := range params {
+				req.URI().QueryArgs().AddBytesKV([]byte(paramKey), []byte(paramVal))
+			}
+		} else {
+			jsonData, err := json.Marshal(params)
+
+			if err != nil {
+				req.SetBody(jsonData)
+			}
+		}
 	}
 }
 
@@ -128,6 +158,12 @@ func (api *BaseApi) Post(path string) *BaseApiResponse {
 func (api *BaseApi) AuthBasic(token string) *BaseApi {
 	api.ctx = context.WithValue(api.ctx, AuthCtxKey, true)     // Enable authentication
 	api.ctx = context.WithValue(api.ctx, AuthKeyCtxKey, token) // Store the token
+	return api
+}
+
+// Params sets the provided parameters in the context for the API client.
+func (api *BaseApi) Params(params map[string]string) *BaseApi {
+	api.ctx = context.WithValue(api.ctx, ParamsCtxKey, params) // Store the parameters
 	return api
 }
 
